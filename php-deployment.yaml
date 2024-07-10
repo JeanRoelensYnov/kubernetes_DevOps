@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php
+  template:
+    metadata:
+      labels:
+        app: php
+    spec:
+      containers:
+      - name: php
+        image: php:7.4-apache
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: php-code
+          mountPath: /var/www/html
+        - name: apache-config
+          mountPath: /etc/apache2/sites-enabled/000-default.conf
+          subPath: 000-default.conf
+      volumes:
+      - name: php-code
+        hostPath:
+          path: /path/to/your/php/code
+          type: Directory
+      - name: apache-config
+        configMap:
+          name: apache-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apache-config
+data:
+  000-default.conf: |
+    <VirtualHost *:80>
+      DocumentRoot /var/www/html
+      <Directory /var/www/html>
+          Options Indexes FollowSymLinks
+          AllowOverride None
+          Require all granted
+      </Directory>
+    </VirtualHost>
+
